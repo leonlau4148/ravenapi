@@ -1,15 +1,20 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using ravenapi.DAL.Data;  // ? Add this
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add DbContext with SQL Server
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
 
@@ -35,25 +40,18 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Configure Swagger with JWT support
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
         Version = "v1",
         Title = "Raven API",
-        Description = "A RESTful Web API built with ASP.NET Core with JWT Authentication",
-        Contact = new Microsoft.OpenApi.Models.OpenApiContact
-        {
-            Name = "Raven",
-            Email = "ravenpauladrales@gmail.com"
-        }
+        Description = "ASP.NET Core Web API with JWT Authentication and SQL Server"
     });
 
-    // Add JWT Authentication to Swagger UI
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.\n\nExample: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'",
+        Description = "JWT Authorization header using the Bearer scheme.",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -78,23 +76,15 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.DocumentTitle = "Raven API Documentation";
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Raven API v1");
-    });
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-
-// IMPORTANT: Authentication must come BEFORE Authorization
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
