@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37216.2 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ravenapi", "ravenapi\ravenapi.csproj", "{22AE31B4-423C-47E7-8A1C-1B0FD19BB9DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ravenapi.DAL", "ravenapi.DAL\ravenapi.DAL.csproj", "{384B6907-7E02-431B-BB5C-C5E0B7724D8C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{22AE31B4-423C-47E7-8A1C-1B0FD19BB9DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22AE31B4-423C-47E7-8A1C-1B0FD19BB9DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22AE31B4-423C-47E7-8A1C-1B0FD19BB9DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22AE31B4-423C-47E7-8A1C-1B0FD19BB9DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{384B6907-7E02-431B-BB5C-C5E0B7724D8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{384B6907-7E02-431B-BB5C-C5E0B7724D8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{384B6907-7E02-431B-BB5C-C5E0B7724D8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{384B6907-7E02-431B-BB5C-C5E0B7724D8C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {87619F91-3E78-409E-9A53-6ECEB5E19E0C}
+	EndGlobalSection
+EndGlobal
