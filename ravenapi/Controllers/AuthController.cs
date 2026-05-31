@@ -1,71 +1,53 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using BiondEocAPI.DAL.ViewModels;  // ← Import from DAL
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+﻿using BiondEocAPI.DAL.ViewModels;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ravenapi.DAL.Data;
+using ravenapi.DAL.Entities;
+using ravenapi.DAL.ViewModels.Auth;
+using ravenapi.Services;
 
-namespace BiondEocAPI.Controllers;
+namespace ravenapi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IConfiguration _configuration;
+    private readonly ApplicationDbContext _db;
+    private readonly TokenService _tokenService;
 
-    public AuthController(IConfiguration configuration)
+    public AuthController(ApplicationDbContext db, TokenService tokenService)
     {
-        _configuration = configuration;
+        _db = db;
+        _tokenService = tokenService;
     }
 
-    /// <summary>
-    /// Login to get JWT token
-    /// </summary>
-    [HttpPost("login")]
-    public IActionResult Login([FromBody] LoginViewModel login)
+    [HttpPost("register")]
+    public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        // TODO: Validate against your database using DAL
-        // For now, hardcoded example
-        if (login.Username == "admin" && login.Password == "password123")
+        if (await _db.Users.AnyAsync(u => u.Email == model.Email))
+            return BadRequest("Email already in use.");
+
+        var user = new User
         {
-            var token = GenerateJwtToken(login.Username);
-
-            return Ok(new LoginResponseViewModel
-            {
-                Token = token,
-                Expiration = DateTime.UtcNow.AddMinutes(
-                    Convert.ToInt32(_configuration["Jwt:ExpiryInMinutes"]))
-            });
-        }
-
-        return Unauthorized(new { message = "Invalid username or password" });
-    }
-
-    private string GenerateJwtToken(string username)
-    {
-        var jwtSettings = _configuration.GetSection("Jwt");
-        var key = Encoding.ASCII.GetBytes(jwtSettings["Key"]!);
-
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.Name, username),
-                new Claim(ClaimTypes.Role, "User"),
-                new Claim(JwtRegisteredClaimNames.Sub, username),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            }),
-            Expires = DateTime.UtcNow.AddMinutes(
-                Convert.ToInt32(jwtSettings["ExpiryInMinutes"])),
-            Issuer = jwtSettings["Issuer"],
-            Audience = jwtSettings["Audience"],
-            SigningCredentials = new SigningCredentials(
-                new SymmetricSecurityKey(key),
-                SecurityAlgorithms.HmacSha256Signature)
+            Email = model.Email,
+            FullName = model.FullName,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password)
         };
 
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+
+        return Ok(new { token = _tokenService.GenerateToken(user) });
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(LoginViewModel model)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
+
+        if (user is null || !BCrypt.Net.BCrypt.Verify(model.Password, user.PasswordHash))
+            return Unauthorized("Invalid email or password.");
+
+        return Ok(new { token = _tokenService.GenerateToken(user) });
     }
 }
