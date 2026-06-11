@@ -401,3 +401,4 @@ FodyWeavers.xsd
 *.sln.iml
 ravenapi/appsettings.Development.json
 ravenapi/appsettings.json
+*.json
